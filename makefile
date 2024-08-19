@@ -1,18 +1,31 @@
-BOOTLOADER=bootloader.o
-DISK_IMG=jacksonOS.img
+BUILD_DIR=build
+BOOTLOADER=$(BUILD_DIR)/bootloader/bootloader.o
+KERNEL=$(BUILD_DIR)/kernel/tester.o
+DISK_IMG=$(BUILD_DIR)/jacksonOS.img
 
-make: bootdisk
+all: bootdisk
+
+.PHONY: bootdisk bootloader kernel
 
 clean:
-	rm $(BOOTLOADER) $(DISK_IMG)
+	make -C bootloader/ clean
+	make -C kernel/ clean
 
 run:
 	make
 	./launchOS.sh $(DISK_IMG)
 
-bootloader:
-	nasm -f bin bootloader.asm -o $(BOOTLOADER)
+debug:
+	make
+	./launchOS_DEBUG.sh $(DISK_IMG)
 
-bootdisk: bootloader
+bootloader:
+	make -C bootloader/
+
+kernel:
+	make -C kernel/
+
+bootdisk: bootloader kernel
 	dd if=/dev/zero of=$(DISK_IMG) bs=512 count=2880 #creates a 1.4MB floppy
 	dd conv=notrunc if=$(BOOTLOADER) of=$(DISK_IMG) bs=512 count=1 seek=0
+	dd conv=notrunc if=$(KERNEL) of=$(DISK_IMG) bs=512 count=1 seek=1
