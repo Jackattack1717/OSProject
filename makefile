@@ -10,6 +10,7 @@ all: bootdisk
 clean:
 	make -C bootloader/ clean
 	make -C kernel/ clean
+	rm $(DISK_IMG)
 
 run:
 	make
