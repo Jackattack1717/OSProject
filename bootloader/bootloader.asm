@@ -1,7 +1,29 @@
 ;Attempt at a bootloader
 org 0x7c00 ;not sure what this does, I *think* it's the address the boot sector places the pc
 bits 16 ;setting CPU to 16 bit mode
-start: jmp boot ;program starts at boot
+start: jmp short boot ;short jump to boot to make room for FAT file info
+nop
+
+	;Boot Parameter Block (bpb)
+	bpb_oemID: db "MSWIN4.1"
+	bpb_bytes_per_sector: dw 512 ;little edian, translates to 00 02
+	bpb_reserved_sector: dw 1
+	bpb_fat_count: db 2
+	bpb_dir_entries: dw 0E0h
+	bpb_total_sectors: dw 2880 ;2880 sectors with 512 bytes is 1.44MB floppy
+	bpb_media_descriptor_type: db 0F0h ;F0 = 3.5" floppy
+	bpb_sectors_per_fat: dw 9
+	bpb_sectors_per_track: dw 18
+	bpb_heads: dw 2
+	bpb_hidden_sectors: dd 0
+	bpb_large_sector_count: dd 0
+
+	;extended boot record
+	ebr_drive_number: db 0 ;0x00 floppy, 0x80 is HDD
+	ebr_NT_flag: db 0 ;reserved, never changes
+	ebr_signature: db 29h ;either 28h or 29h according to OSDev Wiki
+	ebr_volume_id: db 10h, 12h, 13h, 14h ;Used for tracking volumes, can add whatever
+	ebr_volume_label:
 
 boot:
 
@@ -10,50 +32,12 @@ boot:
 	;cld
 	;hlt ;clears any interrupt flags, clears direction flag so program doesn't increase, then halts
 
-%macro SetCursor 2
-    mov bh, 0 ;set page
-    mov dh, %2 ;row
-    mov dl, %1 ;column
-    mov ah, 2;
-	int 0x10 ; set cursor position equal to x,y
-%endmacro
-
-%macro MovCursorx 0
-	mov ah, 3
-	int 0x10
-	inc dl
-	SetCursor dl,dh
-%endmacro
-
-%macro PutChar 1
-	mov al, %1
-	mov bh, 0
-	mov bl, 0
-	mov cx, 0;
-	mov ah, 0xE
-	int 0x10 ;printing to the screen
-%endmacro
-
-mov ah, 1
-int 0x10 ;enable the cursor
-SetCursor 0,11
-PutChar 'H'
-PutChar 'e'
-PutChar 'l'
-PutChar 'l'
-PutChar 'o'
-PutChar ' '
-PutChar 'W'
-PutChar 'o'
-PutChar 'r'
-PutChar 'l'
-PutChar 'd'
-
-
 	;loading 2nd boot sector from disk using int 0x13, AH = 3
+	cli
+	cld ; clears interrupts
 	mov ax, 0x50
 	mov es, ax ; can't write to es directly, using general register AX
-	xor bx, bx ;setting buffers ES:BX
+	xor bx, bx ; clears bx, sets buffer es:bx
 
 	mov al, 2 ; total sector count 2 (not 0 starting number)
 	mov ch, 0 ; track 0
@@ -63,7 +47,7 @@ PutChar 'd'
 
 	mov ah, 0x02 ;setting register AH for interrupt
 	int 0x13
-	jmp 0x20:0x0 ; jump and execute sector changed to 200 from book
+	jmp 0x50:0x0 ; jump and execute sector changed to 200 from book
 	;DEBUG this using gdb w/ b *0x500. If stops then works.
 
 ;boot file MUST be 512 byes, last 2 are set w/ the boot signatures 0xAA55 so that BIOS recognizes bootable media
