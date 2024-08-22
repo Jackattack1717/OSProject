@@ -5,8 +5,9 @@ start: jmp short boot ;short jump to boot to make room for FAT file info
 nop
 
 	;Boot Parameter Block (bpb)
-	bpb_oemID: db "MSWIN4.1"
+	bpb_oemID: db 'MSWIN4.1'
 	bpb_bytes_per_sector: dw 512 ;little edian, translates to 00 02
+	bpb_sectors_per_cluster: db 1
 	bpb_reserved_sector: dw 1
 	bpb_fat_count: db 2
 	bpb_dir_entries: dw 0E0h
@@ -23,7 +24,9 @@ nop
 	ebr_NT_flag: db 0 ;reserved, never changes
 	ebr_signature: db 29h ;either 28h or 29h according to OSDev Wiki
 	ebr_volume_id: db 10h, 12h, 13h, 14h ;Used for tracking volumes, can add whatever
-	ebr_volume_label:
+	ebr_volume_label: db "Jackson OS " ;doesn't matter, pad w/ spaces
+	ebr_sys_ID: db "FAT12   " ;spec also says this isn't trustwory
+
 
 boot:
 

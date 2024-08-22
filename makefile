@@ -29,4 +29,4 @@ kernel:
 bootdisk: bootloader kernel
 	dd if=/dev/zero of=$(DISK_IMG) bs=512 count=2880 #creates a 1.4MB floppy
 	dd conv=notrunc if=$(BOOTLOADER) of=$(DISK_IMG) bs=512 count=1 seek=0
-	dd conv=notrunc if=$(KERNEL) of=$(DISK_IMG) bs=512 count=1 seek=1
+	mcopy -i $(DISK_IMG) $(KERNEL) "::kernel.bin"
