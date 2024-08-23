@@ -1,6 +1,6 @@
-#OS Project
+# OS Project
 
-##Introduction
+## Introduction
 I've started work on this operating system and intend on writing it in such a way as a learning tool for myself.
 My plan is to create an terminal-based OS with *absolutely zero intention* of running on bare metal. If it is able to, that is a nice bonus. My plan for this is to write the OS in a clear and easy to understand fashion, with references to the learning materials I have access to. Those of which include:
 * The OS dev Wiki
@@ -8,7 +8,7 @@ My plan is to create an terminal-based OS with *absolutely zero intention* of ru
 	* Available for free online
 and others.
 
-##Installation
+## Installation
 Make sure you have the [requirements](requirements.txt) installed before attempting to run the operating system.
 * **make** creates the disk img that you can use anywhere
 * **make run** creates the disk and autolaunches qemu with the appropriate settings
