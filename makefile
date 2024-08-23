@@ -1,3 +1,4 @@
+ASM=nasm
 BUILD_DIR=build
 BOOTLOADER=$(BUILD_DIR)/bootloader/bootloader.o
 KERNEL=$(BUILD_DIR)/kernel/tester.o

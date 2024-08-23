@@ -1,0 +1,5 @@
+Requirements to run make:
+nasm
+gnu-utils
+qemu-full
+mtools
