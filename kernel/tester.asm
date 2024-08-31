@@ -1,5 +1,7 @@
-    ;mov eax, 0x6
-	;cli
-	;cld
-	;hlt
-times 512 db 'A' ; trying to see if I can load all "A"'s into memory
+	mov ah, 0x0E
+	mov al, 'A'
+	int 0x10
+    ;THIS SECTION JUST HALTS THE CPU GRACEFULLY.
+	cli
+	cld
+	hlt ;clears any interrupt flags, clears direction flag so program doesn't increase, then halts

@@ -1,9 +1,10 @@
-;Attempt at a bootloader
-org 0x7c00 ;not sure what this does, I *think* it's the address the boot sector places the pc
+;Simple self-written bootloader
+org 0x7c00 ;bios sets the Program Counter to this address, also loading in using asm instruction
 bits 16 ;setting CPU to 16 bit mode
 start: jmp short boot ;short jump to boot to make room for FAT file info
 nop
 
+	;Volume labeling and setup for disk
 	;Boot Parameter Block (bpb)
 	bpb_oemID: db 'MSWIN4.1'
 	bpb_bytes_per_sector: dw 512 ;little edian, translates to 00 02
@@ -30,17 +31,13 @@ nop
 	;boot variables
 	zeroval: db 0x00
 	driveNum: db 0x00
+
 boot:
+
 	mov [driveNum], dl; saving the drive number in variable
-	;THIS SECTION JUST HALTS THE CPU GRACEFULLY.
-	;cli
-	;cld
-	;hlt ;clears any interrupt flags, clears direction flag so program doesn't increase, then halts
 
-	;loading 2nd boot sector from disk using int 0x13, AH = 3
-
-	mov ah, 2 ; setting register AH for interrupt
-	mov al, 1 ; number of sectors we want to read
+	;loading 2nd boot sector from disk using int 0x13, AH = 3. Resources can be found for search "interrupt 0x13 read disk registers"
+	mov al, 2 ; number of sectors we want to read
 	mov ch, 0 ; cylinder number
 	mov cl, 2 ; setting sector to read
 	mov dh, 0 ; setting head number
@@ -50,13 +47,11 @@ boot:
 	mov es, [zeroval];clears this register, can't do immediate write
 	mov bx, 0x7e00 ;the address is a simple 16bit address so no need to offset w/ es
 
+	mov ah, 2 ; setting register AH for bios interrupt to read disk
 	int 0x13 ; we can now read from pointer es:bx
+	;TO DO: error handling using flags
+	jmp 0x7e00 ;jumping to code at pointer address
 
-	mov ah, 0x0E
-	mov al, [0x7e00]
-	int 0x10 ; reading from memory and printing to the screen 'A'
-	;jmp 0x50:0x0 ; jump and execute sector changed to 200 from book
-	;DEBUG this using gdb w/ b *0x500. If stops then works.
 
 ;boot file MUST be 512 byes, last 2 are set w/ the boot signatures 0xAA55 so that BIOS recognizes bootable media
 ;keep below code, needed for boot
