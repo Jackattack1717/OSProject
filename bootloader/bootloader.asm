@@ -27,30 +27,35 @@ nop
 	ebr_volume_label: db "Jackson OS " ;doesn't matter, pad w/ spaces
 	ebr_sys_ID: db "FAT12   " ;spec also says this isn't trustwory
 
-
+	;boot variables
+	zeroval: db 0x00
+	driveNum: db 0x00
 boot:
-
+	mov [driveNum], dl; saving the drive number in variable
 	;THIS SECTION JUST HALTS THE CPU GRACEFULLY.
 	;cli
 	;cld
 	;hlt ;clears any interrupt flags, clears direction flag so program doesn't increase, then halts
 
 	;loading 2nd boot sector from disk using int 0x13, AH = 3
-	cli
-	cld ; clears interrupts
-	mov ax, 0x50
-	mov es, ax ; can't write to es directly, using general register AX
-	xor bx, bx ; clears bx, sets buffer es:bx
 
-	mov al, 2 ; total sector count 2 (not 0 starting number)
-	mov ch, 0 ; track 0
+	mov ah, 2 ; setting register AH for interrupt
+	mov al, 1 ; number of sectors we want to read
+	mov ch, 0 ; cylinder number
 	mov cl, 2 ; setting sector to read
 	mov dh, 0 ; setting head number
-	mov dl, 0 ; setting drive number
+	mov dl, [driveNum] ; setting drive number
 
-	mov ah, 0x02 ;setting register AH for interrupt
-	int 0x13
-	jmp 0x50:0x0 ; jump and execute sector changed to 200 from book
+	; es offset by bx, es:bx, is a pointer in RAM to where we want to load the above storage into memory
+	mov es, [zeroval];clears this register, can't do immediate write
+	mov bx, 0x7e00 ;the address is a simple 16bit address so no need to offset w/ es
+
+	int 0x13 ; we can now read from pointer es:bx
+
+	mov ah, 0x0E
+	mov al, [0x7e00]
+	int 0x10 ; reading from memory and printing to the screen 'A'
+	;jmp 0x50:0x0 ; jump and execute sector changed to 200 from book
 	;DEBUG this using gdb w/ b *0x500. If stops then works.
 
 ;boot file MUST be 512 byes, last 2 are set w/ the boot signatures 0xAA55 so that BIOS recognizes bootable media
